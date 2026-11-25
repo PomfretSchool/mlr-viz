@@ -49,103 +49,104 @@ function wedge(parent, ctx, c, L, cx, cy, r0, r1, a0, a1) {
 
 /* ---------- 1. Castle ---------- */
 function castle(ctx) {
-  const W = 1200, H = 680, G = 600, x0 = 40, bay = (W - 2 * x0) / 7, svg = root(W, H);
+  const W = 1200, H = 560, G = 482, x0 = 40, bay = (W - 2 * x0) / 7, svg = root(W, H);
+  const row = 27, WT = G - 3 * row, tw = 108, fh = 50, fg = 4;
   s("line", { x1: 10, x2: W - 10, y1: G, y2: G, class: "ground" }, svg);
   GROUPS.forEach((g, gi) => {
-    const bx = x0 + gi * bay, cx = bx + bay / 2, F = g.comps.filter((c) => c.kind === "F").map((c) => BY_ID[c.id]);
+    const bx = x0 + gi * bay, cx = bx + bay / 2, tx = cx - tw / 2;
+    const F = g.comps.filter((c) => c.kind === "F").map((c) => BY_ID[c.id]);
     const A = g.comps.filter((c) => c.kind === "A").map((c) => BY_ID[c.id]);
-    // foundation: three columns (one per foundational competency), three courses (one per level)
-    const cw = (bay - 4) / 3;
-    F.forEach((c, ci) => { for (let L = 1; L <= 3; L++) box(svg, ctx, c, L, bx + 2 + ci * cw + 1.5, G - L * 26 + 1.5, cw - 3, 23); });
-    // tower: one floor per advanced competency the student has chosen, in the order they started
-    const tw = 102, tx = cx - tw / 2, base = G - 78, fh = 44;
-    const built = A.filter((c) => visible(ctx, c)).sort(byFirst(ctx));
-    built.forEach((c, i) => {
-      const y = base - (i + 1) * (fh + 3);
-      for (let L = 1; L <= 3; L++) box(svg, ctx, c, L, tx + (L - 1) * (tw / 3) + 1.5, y, tw / 3 - 3, fh);
-    });
-    const top = base - built.length * (fh + 3);
-    const flagged = built.some((c) => ctx.st[c.id].level === 3);
-    if (built.length) {
-      for (let m = 0; m < 4; m++) s("rect", { x: tx + 4 + m * 26, y: top - 14, width: 16, height: 12, rx: 2, class: "merlon" }, svg);
-      if (built.some((c) => ctx.st[c.id].level === 3)) {
-        const done = built.filter((c) => ctx.st[c.id].level === 3).length;
-        s("line", { x1: cx, x2: cx, y1: top - 14, y2: top - 58, class: "pole" }, svg);
-        s("path", { d: `M${cx},${top - 58}l${18 + done * 6},8l${-18 - done * 6},8z`, fill: g.ink }, svg);
-      }
-    }
-    if (ctx.living) {
-      const room = 4 - built.length;
-      for (let i = 0; i < room; i++) {
-        const y = top - (flagged ? 64 : built.length ? 18 : 0) - (i + 1) * (fh + 3);
-        const c = A.filter((c) => !visible(ctx, c))[i];
-        s("rect", { x: tx + 1.5, y, width: tw - 3, height: fh, rx: 3, class: "u-ghost", "data-comp": c.id }, svg);
-        if (i === 0) t(svg, cx, y + fh / 2 + 5, "+ room to build", { class: "ghost-label", "text-anchor": "middle" });
-      }
-    }
     const k = ctx.k.byGroup[g.id];
-    t(svg, cx, G + 26, g.short, { class: "lab", "text-anchor": "middle" });
-    t(svg, cx, G + 44, `base ${k.fDone}/3 · ${k.aDone} flag${k.aDone === 1 ? "" : "s"}`, { class: "lab-sm", "text-anchor": "middle" });
+    // wall: one column per foundational competency, one course per level
+    const cw = (bay - 2) / 3;
+    F.forEach((c, ci) => { for (let L = 1; L <= 3; L++) box(svg, ctx, c, L, bx + 1 + ci * cw + 1.5, G - L * row + 1.5, cw - 3, row - 3); });
+    // a finished wall gets its battlements on either side of the tower
+    if (k.fDone === 3) for (const mx of [bx + 6, bx + bay - 20]) s("rect", { x: mx, y: WT - 12, width: 14, height: 10, rx: 2, fill: tint(g.ink, 3) }, svg);
+    // tower: built floors (chosen advanced competencies, in the order started), then open floors
+    const built = A.filter((c) => visible(ctx, c)).sort(byFirst(ctx));
+    const open = ctx.living ? A.filter((c) => !visible(ctx, c)) : [];
+    const floorY = (i) => WT - 4 - (i + 1) * (fh + fg) + fg;
+    built.forEach((c, i) => {
+      const y = floorY(i);
+      for (let L = 1; L <= 3; L++) box(svg, ctx, c, L, tx + (L - 1) * (tw / 3) + 1.5, y, tw / 3 - 3, fh);
+      if (ctx.st[c.id].level === 3) s("path", { d: `M${tx + tw + 2},${y + 6}l18,7l-18,7z`, fill: g.ink, "data-comp": c.id }, svg);
+    });
+    open.forEach((c, j) => s("rect", { x: tx + 1.5, y: floorY(built.length + j), width: tw - 3, height: fh, rx: 3, class: "u-ghost", "data-comp": c.id }, svg));
+    const n = built.length + open.length, top = floorY(n - 1);
+    const maxed = A.every((c) => ctx.st[c.id].level === 3);
+    if (n) {
+      const roof = `M${tx - 6},${top - 4}L${cx},${top - 46}L${tx + tw + 6},${top - 4}Z`;
+      if (maxed) s("path", { d: roof, fill: g.ink }, svg);
+      else if (ctx.living) s("path", { d: roof, class: "u-ghost" }, svg);
+      else for (let m = 0; m < 4; m++) s("rect", { x: tx + 4 + m * 28, y: top - 16, width: 16, height: 12, rx: 2, fill: tint(g.ink, 1) }, svg);
+    }
+    if (ctx.living && open.length) t(svg, cx, floorY(built.length) + fh / 2 + 4, `+ ${open.length} open floor${open.length === 1 ? "" : "s"}`, { class: "ghost-label", "text-anchor": "middle" });
+    t(svg, cx, G + 24, g.short, { class: "lab", "text-anchor": "middle" });
+    t(svg, cx, G + 42, `wall ${k.fDone}/3 · ${k.aStarted} floor${k.aStarted === 1 ? "" : "s"}`, { class: "lab-sm", "text-anchor": "middle" });
   });
+  t(svg, 10, 20, "Pennant = advanced competency complete.  Roof = all four complete.", { class: "lab-sm" });
   return svg;
 }
 
 /* ---------- 2. Garden ---------- */
+const bez = (p0, p1, p2, u) => [0, 1].map((i) => (1 - u) ** 2 * p0[i] + 2 * (1 - u) * u * p1[i] + u * u * p2[i]);
+const tan = (p0, p1, p2, u) => Math.atan2(...[1, 0].map((i) => 2 * (1 - u) * (p1[i] - p0[i]) + 2 * u * (p2[i] - p1[i])));
+function piece(p0, p1, p2, u0, u1) {
+  let d = "";
+  for (let k = 0; k <= 10; k++) { const p = bez(p0, p1, p2, u0 + ((u1 - u0) * k) / 10); d += (k ? "L" : "M") + p[0].toFixed(1) + "," + p[1].toFixed(1); }
+  return d;
+}
 function garden(ctx) {
-  const W = 1200, H = 700, G = 380, x0 = 40, bay = (W - 2 * x0) / 7, svg = root(W, H);
-  s("rect", { x: 0, y: G, width: W, height: H - G - 50, class: "soil" }, svg);
+  const W = 1200, G = 330, H = G + 230, x0 = 40, bay = (W - 2 * x0) / 7, svg = root(W, H);
+  s("rect", { x: 0, y: G, width: W, height: 196, class: "soil" }, svg);
   s("line", { x1: 0, x2: W, y1: G, y2: G, class: "ground" }, svg);
-  const rad = (d) => (d * Math.PI) / 180;
-  function seg(c, L, p0, p1, width) {
-    const u = unit(ctx, c, L);
-    if (u.cls === "u-none") return;
-    const cls = u.cls.replace("u-", "l-");
-    s("line", { x1: p0[0], y1: p0[1], x2: p1[0], y2: p1[1], stroke: u.fill, "stroke-width": width, class: cls, "data-comp": c.id, "data-level": L }, svg);
-    return u.cls;
+  // one curve per competency, cut into three pieces: one per level
+  function grow(c, curve, widths) {
+    let reached = 0;
+    for (let L = 1; L <= 3; L++) {
+      const u = unit(ctx, c, L);
+      if (u.cls === "u-none") break;
+      s("path", { d: piece(...curve, (L - 1) / 3, L / 3), stroke: u.fill, "stroke-width": u.cls === "u-earned" ? widths[L - 1] : 2, class: u.cls.replace("u-", "l-"), "data-comp": c.id, "data-level": L }, svg);
+      if (u.cls !== "u-earned") { if (u.cls !== "u-open") s("circle", { cx: bez(...curve, L / 3)[0], cy: bez(...curve, L / 3)[1], r: 6, class: u.cls, "data-comp": c.id }, svg); break; }
+      reached = L;
+    }
+    return reached;
   }
   GROUPS.forEach((g, gi) => {
-    const cx = x0 + gi * bay + bay / 2, F = g.comps.filter((c) => c.kind === "F").map((c) => BY_ID[c.id]);
+    const cx = x0 + gi * bay + bay / 2, B = [cx, G];
+    const F = g.comps.filter((c) => c.kind === "F").map((c) => BY_ID[c.id]);
     const A = g.comps.filter((c) => c.kind === "A").map((c) => BY_ID[c.id]);
-    // roots: one per foundational competency, one segment per level
+    // roots: start straight down, then spread
     F.forEach((c, ri) => {
-      const a = rad([-22, 0, 22][ri]);
-      let p = [cx, G];
-      for (let L = 1; L <= 3; L++) {
-        const aa = a * (1 + 0.25 * L), wob = (L % 2 ? 5 : -5) * (ri - 1 || 1);
-        const q = [p[0] + 52 * Math.sin(aa) + wob * 0.3, p[1] + 52 * Math.cos(aa)];
-        seg(c, L, p, q, 6 - L * 1.2);
-        p = q;
+      const dx = [-62, 0, 62][ri], curve = [B, [cx + dx * 0.15, G + 70], [cx + dx, G + 160 - Math.abs(dx) * 0.25]];
+      if (grow(c, curve, [5, 3.6, 2.4]) === 3) {
+        const p = curve[2];
+        s("circle", { cx: p[0], cy: p[1], r: 3.5, fill: g.ink, "data-comp": c.id }, svg);
       }
-      if (ctx.st[c.id].level === 3) s("circle", { cx: p[0], cy: p[1], r: 3.5, fill: g.ink, "data-comp": c.id }, svg);
     });
-    // stalks: one per advanced competency chosen, in the order started, from the middle outward
-    const slots = [-6, 8, -22, 24];
+    // stalks: start upright, lean outward; leaves at Begun and Likely, a bloom at Complete
+    const slots = [[-24, 250], [26, 232], [-66, 204], [66, 190]];
     const up = A.filter((c) => visible(ctx, c)).sort(byFirst(ctx));
     up.forEach((c, i) => {
-      const a0 = rad(slots[i]);
-      let p = [cx, G];
-      for (let L = 1; L <= 3; L++) {
-        const aa = a0 * (1 + 0.4 * L), q = [p[0] + 72 * Math.sin(aa), p[1] - 72 * Math.cos(aa)];
-        const cls = seg(c, L, p, q, 3);
-        if (cls === "u-earned" && L < 3) {
-          const side = (L + i) % 2 ? 1 : -1, ang = (aa * 180) / Math.PI + side * 50;
-          s("ellipse", { cx: q[0] + side * 9 * Math.cos(aa), cy: q[1] + side * 9 * Math.sin(aa), rx: 10, ry: 4, fill: tint(g.ink, 2), transform: `rotate(${ang} ${q[0] + side * 9 * Math.cos(aa)} ${q[1] + side * 9 * Math.sin(aa)})`, "data-comp": c.id }, svg);
-        }
-        if (cls === "u-earned" && L === 3) {
-          for (let k = 0; k < 5; k++) { const pa = (k * 2 * Math.PI) / 5; s("circle", { cx: q[0] + 8 * Math.sin(pa), cy: q[1] - 8 * Math.cos(pa), r: 6.5, fill: g.ink, "data-comp": c.id }, svg); }
-          s("circle", { cx: q[0], cy: q[1], r: 4, class: "pistil", "data-comp": c.id }, svg);
-        }
-        if (cls === "u-raised" || cls === "u-returned") s("circle", { cx: q[0], cy: q[1], r: 6, class: cls, "data-comp": c.id }, svg);
-        if (cls !== "u-earned") break;
-        p = q;
+      const [dx, hgt] = slots[i], b = [cx + dx * 0.12, G], curve = [b, [cx + dx * 0.15, G - hgt * 0.55], [cx + dx, G - hgt]];
+      const reached = grow(c, curve, [4, 3.4, 2.8]);
+      for (let L = 1; L <= Math.min(reached, 2); L++) {
+        const p = bez(...curve, L / 3 - 0.04), a = tan(...curve, L / 3), side = (L + i) % 2 ? 1 : -1;
+        const lx = p[0] + side * 10 * Math.cos(a), ly = p[1] + side * 10 * Math.sin(a);
+        s("ellipse", { cx: lx, cy: ly, rx: 13, ry: 5, fill: tint(g.ink, 2), transform: `rotate(${(a * 180) / Math.PI + side * 35} ${lx} ${ly})`, "data-comp": c.id }, svg);
+      }
+      if (reached === 3) {
+        const q = curve[2];
+        for (let k = 0; k < 6; k++) { const pa = (k * Math.PI) / 3; s("ellipse", { cx: q[0] + 8 * Math.sin(pa), cy: q[1] - 8 * Math.cos(pa), rx: 5.5, ry: 8, fill: g.ink, transform: `rotate(${(pa * 180) / Math.PI} ${q[0] + 8 * Math.sin(pa)} ${q[1] - 8 * Math.cos(pa)})`, "data-comp": c.id }, svg); }
+        s("circle", { cx: q[0], cy: q[1], r: 4.5, class: "pistil", "data-comp": c.id }, svg);
       }
     });
     if (ctx.living) A.filter((c) => !visible(ctx, c)).forEach((c, i, arr) =>
-      s("circle", { cx: cx - (arr.length - 1) * 9 + i * 18, cy: G + 12, r: 4, class: "seed", "data-comp": c.id }, svg));
-    t(svg, cx, H - 22, g.short, { class: "lab", "text-anchor": "middle" });
+      s("ellipse", { cx: cx - (arr.length - 1) * 10 + i * 20, cy: G + 11, rx: 5, ry: 3.5, class: "seed", "data-comp": c.id }, svg));
+    t(svg, cx, H - 12, g.short, { class: "lab", "text-anchor": "middle" });
   });
-  t(svg, 12, G - 8, "advanced: stalks rise", { class: "lab-sm" });
-  t(svg, 12, G + 22, "foundational: roots deepen", { class: "lab-sm" });
+  t(svg, 10, 20, "Stalks: advanced competencies chosen. Leaf = Begun, Likely. Bloom = Complete.", { class: "lab-sm" });
+  t(svg, 10, G + 188, "Roots: the 21 foundational competencies, one segment per level.", { class: "lab-sm" });
   return svg;
 }
 
@@ -365,9 +366,9 @@ first   = date of the first request (orders tower floors and stalks)</pre>
 
 export const VIEWS = [
   { id: "castle", title: "Castle", kind: "Static + replay", who: "Student · College", render: castle,
-    note: "The 21 foundational competencies are the wall: one column each, one course per level. Each advanced competency a student chooses adds a floor to that area's tower, in the order they started it. A flag flies once a floor is complete. Dashed outlines are room to build, not gaps." },
+    note: "The 21 foundational competencies are the wall: one column each, one course per level. Each advanced competency a student chooses adds a floor to that area's tower, in the order they started it, filling left to right by level. A pennant flies from each finished floor; all four finished puts the roof on. Dashed floors are open to build, not gaps." },
   { id: "garden", title: "Garden", kind: "Animated growth", who: "Student", render: garden,
-    note: "Roots are the foundational competencies; each grows one segment per level. Stalks are the advanced ones the student chose: leaves at Begun and Likely, a bloom at Complete. Seeds in the soil are advanced paths not yet started. Press Play to watch it grow." },
+    note: "Roots are the foundational competencies; each grows one segment per level. Stalks are the advanced ones the student chose: leaves at Begun and Likely, a bloom at Complete. Stalks start upright and lean out as they grow. Seeds in the soil are advanced paths not yet started. Press Play to watch the whole record grow." },
   { id: "compass", title: "Compass", kind: "Static signature", who: "College · Student", render: compass,
     note: "Inside the ring: foundational work, the same for everyone when finished. Outside the ring: advanced work, different for every student. The outer shape is the student's signature; read it for where they went deep." },
   { id: "dials", title: "Dials", kind: "Hover", who: "Student · Advisor", render: dials,

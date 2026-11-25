@@ -189,10 +189,10 @@ export function counts(st) {
 --------------------------------------------------------------------------- */
 
 const PERSONAS = [
-  { id: "avery", name: "Avery Lin", cls: 2027, seed: 7, adv: 14,
+  { id: "morgan", name: "Morgan Ellery", cls: 2027, seed: 7, adv: 14,
     likes: { creates: 5, engages: 3, leads: 2, nav: 1.5, well: 1, learns: 1, comms: 0.6 },
     statement: "I learn by building things that other people end up using." },
-  { id: "riley", name: "Riley Okafor", cls: 2027, seed: 23, adv: 12,
+  { id: "riley", name: "Riley Okafor", cls: 2027, seed: 23, adv: 12, max: "well",
     likes: { learns: 5, comms: 4, well: 2.5, nav: 1.2, leads: 1, engages: 0.8, creates: 0.3 },
     statement: "I want to understand how ideas connect, and say so clearly." },
   { id: "jules", name: "Jules Bennett", cls: 2028, seed: 13, adv: 9,
@@ -262,7 +262,10 @@ function generate(p) {
   for (const c of COMPS.filter((c) => c.kind === "F")) comps[c.id] = build(c, Math.floor(r() ** 1.6 * 6));
   // advanced: the student's own choices, weighted by what they like
   let pool = COMPS.filter((c) => c.kind === "A");
-  for (let n = 0; n < p.adv && pool.length; n++) {
+  // a persona can have one area they took all the way: all four advanced, started early
+  for (const c of pool.filter((c) => c.group.id === p.max)) comps[c.id] = build(c, 3);
+  pool = pool.filter((c) => c.group.id !== p.max);
+  for (let n = p.max ? 4 : 0; n < p.adv && pool.length; n++) {
     const w = pool.map((c) => p.likes[c.group.id] ?? 1), tot = w.reduce((a, b) => a + b);
     let pick = r() * tot, i = 0;
     while ((pick -= w[i]) > 0) i++;

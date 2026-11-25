@@ -6,7 +6,7 @@ const esc = (x) => String(x).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&l
 const hash = Object.fromEntries(new URLSearchParams(location.hash.slice(1)));
 const S = {
   view: VIEWS.some((v) => v.id === hash.v) ? hash.v : "castle",
-  sid: STUDENTS.some((r) => r.student.id === hash.s) ? hash.s : "avery",
+  sid: STUDENTS.some((r) => r.student.id === hash.s) ? hash.s : "morgan",
   mode: hash.m === "snapshot" ? "snapshot" : "living",
   date: TODAY, open: null, timer: null,
 };

@@ -71,12 +71,12 @@ svg [data-comp]:hover, svg .sel { stroke: var(--ink); stroke-width: 2; }
 .merlon { fill: #e3e5e0; }
 .pole { stroke: var(--ink); stroke-width: 1.5; }
 .soil { fill: var(--soil); }
-line.l-earned { stroke-linecap: round; }
-line.l-open { stroke: var(--open); stroke-width: 1.5; stroke-dasharray: 2 4; }
-line.l-raised { stroke: var(--amber); stroke-width: 2; stroke-dasharray: 4 3; }
-line.l-returned { stroke: var(--red); stroke-width: 2; stroke-dasharray: 4 3; }
+.l-earned { fill: none; stroke-linecap: round; }
+.l-open { fill: none; stroke: var(--open); stroke-width: 1.5; stroke-dasharray: 2 4; }
+.l-raised { fill: none; stroke: var(--amber); stroke-width: 2; stroke-dasharray: 4 3; }
+.l-returned { fill: none; stroke: var(--red); stroke-width: 2; stroke-dasharray: 4 3; }
 .pistil { fill: #fff; }
-.seed { fill: none; stroke: #b9a98a; stroke-width: 1.5; }
+.seed { fill: #e6dcc8; stroke: #b9a98a; stroke-width: 1.2; }
 .fline { fill: none; stroke: var(--ink); stroke-width: 1; }
 .band { fill: #f2f3ef; }
 .future { fill: var(--paper); opacity: 0.6; }
