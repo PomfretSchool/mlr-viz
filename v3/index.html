@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Learning Record · v3</title>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="bar">
+    <div class="brand"><a href="../v2/">v2</a> / <b>Learning Record · v3</b> <span class="syn">synthetic data</span></div>
+    <select id="student" aria-label="Student"></select>
+    <div class="seg" role="group" aria-label="Mode">
+      <button data-mode="living" title="For the student: shows raised hands, notes, and room to build">Living</button>
+      <button data-mode="snapshot" title="For a college reader: only what is earned">Snapshot</button>
+    </div>
+    <div class="time">
+      <button id="play">Play</button>
+      <input id="when" type="range" min="0" step="1" aria-label="Date" />
+      <span id="date"></span>
+    </div>
+  </header>
+  <nav id="nav"></nav>
+  <main>
+    <div class="head">
+      <div><h1 id="title"></h1><p id="tags"></p></div>
+      <p id="note"></p>
+    </div>
+    <div class="legend">
+      <span><i style="background:#cfd3d8"></i><i style="background:#9aa1aa"></i><i style="background:#5b636e"></i> Begun · Likely · Complete (each in its area color)</span>
+      <span class="lv-only"><i class="u-raised"></i> Hand raised, awaiting a guide</span>
+      <span class="lv-only"><i class="u-returned"></i> Back with notes</span>
+      <span class="lv-only"><i class="u-ghost"></i> Room to build</span>
+      <span id="stats"></span>
+    </div>
+    <div id="stage"></div>
+  </main>
+  <aside id="drawer" hidden></aside>
+  <div id="tip" hidden></div>
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>

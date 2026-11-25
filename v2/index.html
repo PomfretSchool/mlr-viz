@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Learning Record · v2</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="bar">
+    <nav class="crumbs" aria-label="Location">
+      <a class="crumb link" href="../v1/">v1</a>
+      <span class="sep">/</span>
+      <span class="crumb is-here">v2</span>
+      <span class="sep">/</span>
+      <div class="crumb-menu">
+        <button type="button" class="crumb" id="crumb-student" aria-expanded="false" aria-haspopup="true"></button>
+        <div class="menu-list" id="menu-student" hidden></div>
+      </div>
+      <span class="sep">/</span>
+      <div class="crumb-menu">
+        <button type="button" class="crumb" id="crumb-viz" aria-expanded="false" aria-haspopup="true"></button>
+        <div class="menu-list" id="menu-viz" hidden></div>
+      </div>
+      <span class="sep" id="term-slash">/</span>
+      <div class="crumb-menu" id="term-wrap">
+        <button type="button" class="crumb" id="crumb-term" aria-expanded="false" aria-haspopup="true"></button>
+        <div class="menu-list" id="menu-term" hidden></div>
+      </div>
+    </nav>
+    <div class="bar-right">
+      <div class="legend" title="Each competency fills left to right">
+        <span class="cells"><i></i><i class="off"></i><i class="off"></i></span> Begun
+        <span class="cells"><i></i><i></i><i class="off"></i></span> Likely
+        <span class="cells"><i></i><i></i><i></i></span> Complete
+      </div>
+      <div id="stats"></div>
+      <button type="button" id="play">Play</button>
+    </div>
+  </header>
+  <main id="plate"></main>
+  <div id="tip" hidden></div>
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
